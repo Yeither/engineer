@@ -1,0 +1,3 @@
+/home/zhouhb/桌面/exchangefuben/cmake-build-debug/CMakeFiles/exchange.dir
+/home/zhouhb/桌面/exchangefuben/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/zhouhb/桌面/exchangefuben/cmake-build-debug/CMakeFiles/rebuild_cache.dir
