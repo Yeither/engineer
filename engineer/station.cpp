@@ -363,9 +363,8 @@ int ExchangeStation::getPoint(Mat & src,Mat origin)
     return 1;
 }
 
-int ExchangeStation::betterRightUp(Point better_right_on_point, RotatedRect left_down,Mat src)
+int ExchangeStation::betterJudge(Mat image, RotatedRect left_up, RotatedRect right_down, RotatedRect left_down, Point better_right_on_point )
 {
-    //圈一个假的ROI，在其中再检测一遍
     int length_add = left_down.size.width * 1.3;
     int height_add = left_down.size.height * 1.3;
     int up = better_right_on_point.y + height_add;
@@ -388,80 +387,24 @@ int ExchangeStation::betterRightUp(Point better_right_on_point, RotatedRect left
     {
         left = 0;
     }
-    /*
+
     Rect mask;
     mask.height = 2 * height_add;
     mask.width = 2 * length_add;
     mask.x = better_right_on_point.x - length_add;
     mask.y = better_right_on_point.y - height_add;
-    Mat ROI_img(src, mask);
-    imshow("roi", ROI_img);
-    */
-    vector<RotatedRect>Better_right_up;
-    vector<int> better_choice;
-    better_choice.reserve(pre_rect.size());
-    for (int i = 0; i < pre_rect.size(); i++)
+    Rect station[4] = { left_up.boundingRect(), right_down.boundingRect() , left_down.boundingRect() , mask };
+    Mat ROI_img1(src, left_up.boundingRect());
+    Mat ROI_img2(src, right_down.boundingRect());
+    Mat ROI_img3(src, left_down.boundingRect());
+    Mat ROI_img4(src, mask);
+    Mat roi[4] = { ROI_img1 , ROI_img2 , ROI_img3 , ROI_img4 };
+    for (int i = 0; i < 4; i++)
     {
-        if ((pre_rect[i].center.x < right) &&
-            (pre_rect[i].center.x > left) &&
-            (pre_rect[i].center.y > down) &&
-            (pre_rect[i].center.y < up))
-        {
-            better_choice[i] = 1;
-        }
-        if (better_choice[i]) {
-            {
-                /*
-                Mat imageContours3 = Mat::zeros(src.size(), CV_8UC3);
-                Point2f vertices[4];
-                pre_rect[i].points(vertices);
-                for (int j = 0; j < 4; j++)
-                    line(imageContours3, vertices[j], vertices[(j + 1) % 4], Scalar(0, 255, 0), 2);
-                imshow("imageContours3", imageContours3); waitKey(0);*/
-                Better_right_up.push_back(pre_rect[i]);
-            }
-        }
-        //用三个矩形算一个更好的右上角
-        int max_x = pre_rect[0].center.x;
-        int min_x = pre_rect[0].center.x;
-        int max_y = pre_rect[0].center.y;
-        int min_y = pre_rect[0].center.y;
-        int max_area = pre_rect[0].size.area();
-        int middle;
-        for (int i = 0; i < pre_rect.size(); i++)
-        {
-            if (pre_rect[i].size.area() > max_area)
-            {
-                middle = i;
-            }
-        }
-        for (int i = 0; i < pre_rect.size(); i++)
-        {
-            if (i != middle)
-            {
-                if (pre_rect[i].center.x>max_x)
-                {
-                    max_x = pre_rect[i].center.x;
-                }
-                else if (pre_rect[i].center.x < min_x)
-                {
-                    min_x = pre_rect[i].center.x;
-                }
-                if (pre_rect[i].center.y > max_y)
-                {
-                    max_y = pre_rect[i].center.y;
-                }
-                else if (pre_rect[i].center.y < min_y)
-                {
-                    max_y = pre_rect[i].center.y;
-                }
-            }
-            better_right_on_point.x = (max_x + min_x) * 0.5;
-            better_right_on_point.y = (max_y + min_y) * 0.5;
-        }
+        cv::goodFeaturesToTrack(image, corners, 1, 0.8, 1, roi[i]);
     }
-    return 1;
 }
+
 
 void ExchangeStation::check(Mat src, exchangeStation* exchangeStation)
 {
@@ -490,10 +433,10 @@ void ExchangeStation::check(Mat src, exchangeStation* exchangeStation)
 
     //show show need
     Mat imageContours = Mat::zeros(src.size(), CV_8UC3);
-    line(imageContours, better_right_on_point, right_down.center, Scalar(255, 255, 0), 3, LINE_8, 0);
-    line(imageContours, right_down.center, left_down.center, Scalar(255, 255, 0), 3, LINE_8, 0);
-    line(imageContours, left_down.center, left_up.center, Scalar(255, 255, 0), 3, LINE_8, 0);
-    line(imageContours, left_up.center, better_right_on_point, Scalar(255, 255, 0), 3, LINE_8, 0);
+    for (int i = 0; i < 4; i++)
+    {
+        line(imageContours, corners[i%4], corners[(i+1)%4], Scalar(255, 255, 0), 3, LINE_8, 0);
+    }
     imageContours = imageContours + src;
     imshow("imageContours", imageContours);
     //imwrite("C:/Users/y8615/Desktop/imageContours2.jpg", imageContours);
@@ -503,11 +446,12 @@ void  ExchangeStation::judgeStation(Mat src)
 {
     ExchangeStation::preTreatment(src, ExchangeStation::out);
     ExchangeStation::getPoint(ExchangeStation::out, src);
-    //ExchangeStation::betterRightUp(ExchangeStation::better_right_on_point, ExchangeStation::left_down, src);
+    ExchangeStation::betterJudge(out,left_up,right_down,left_down,better_right_on_point);
     ExchangeStation::check(src, ExchangeStation::pExchangeStation);
 
     pre_rect.clear();
     hierarchy.clear();
     contours.clear();
     distances.clear();
+    corners.clear();
 }

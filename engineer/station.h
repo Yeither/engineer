@@ -66,7 +66,7 @@ public:
     *		src： 图片
     * @Return:没啥意义
     */
-    int betterRightUp(Point better_right_on_point, RotatedRect left_down,Mat src);
+    int ExchangeStation::betterJudge(Mat image, RotatedRect left_up, RotatedRect right_down, RotatedRect left_down, Point better_right_on_point );
 
     /*show show need!!!*/
     void check(Mat src, exchangeStation* exchangeStation);
@@ -82,6 +82,7 @@ public:
     Point station_center;          //兑换站中心点
     vector<RotatedRect> pre_rect;  //捕捉到的轮廓的外接矩形
     vector <int> distances;        //一些距离
+    vector<Point>corners;          //一些角点
     exchangeStation exchangeStation1;
     exchangeStation* pExchangeStation = &exchangeStation1;
     Mat out;
