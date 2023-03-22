@@ -1,0 +1,14 @@
+# ninja log v5
+1	955	1679144504758994463	CMakeFiles/exchange.dir/AngleSolver.cpp.o	8031572d60550b76
+0	18	1679190359910735194	build.ninja	4c46d2702c2badc
+0	982	1679143569736574912	CMakeFiles/exchange.dir/station.cpp.o	a66cd151b0a5332b
+1	989	1678794749425963565	CMakeFiles/exchange.dir/GxCamera/GxCamera.cpp.o	8acc2510d5b830f3
+1	11	1678794748441977670	CMakeFiles/exchange.dir/Serial.cpp.o	baa3778acd3c899
+0	1017	1679085766023804886	CMakeFiles/exchange.dir/main.cpp.o	2b834f6c81d8e99f
+955	1034	1679144504834999012	exchange	e84b8f464bc94b40
+0	13	1679322189658754163	CMakeFiles/exchange.dir/Serial.cpp.o	baa3778acd3c899
+0	1146	1679322190790694481	CMakeFiles/exchange.dir/main.cpp.o	2b834f6c81d8e99f
+0	1274	1679322190918687573	CMakeFiles/exchange.dir/GxCamera/GxCamera.cpp.o	8acc2510d5b830f3
+1	1313	1679322190958685413	CMakeFiles/exchange.dir/station.cpp.o	a66cd151b0a5332b
+0	1339	1679322190982684120	CMakeFiles/exchange.dir/AngleSolver.cpp.o	8031572d60550b76
+1339	1453	1679322191098677515	exchange	e84b8f464bc94b40
