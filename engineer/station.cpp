@@ -393,11 +393,12 @@ int ExchangeStation::betterJudge(Mat image, RotatedRect left_up, RotatedRect rig
     mask.width = 2 * length_add;
     mask.x = better_right_on_point.x - length_add;
     mask.y = better_right_on_point.y - height_add;
-    Rect station[4] = { left_up.boundingRect(), right_down.boundingRect() , left_down.boundingRect() , mask };
+    Rect station[4] = { left_up.boundingRect(), mask , right_down.boundingRect() , left_down.boundingRect()};
     Mat ROI_img1(src, left_up.boundingRect());
-    Mat ROI_img2(src, right_down.boundingRect());
-    Mat ROI_img3(src, left_down.boundingRect());
-    Mat ROI_img4(src, mask);
+    Mat ROI_img2(src, mask);
+    Mat ROI_img3(src, right_down.boundingRect());
+    Mat ROI_img4(src, left_down.boundingRect());
+    
     Mat roi[4] = { ROI_img1 , ROI_img2 , ROI_img3 , ROI_img4 };
     for (int i = 0; i < 4; i++)
     {
@@ -453,5 +454,4 @@ void  ExchangeStation::judgeStation(Mat src)
     hierarchy.clear();
     contours.clear();
     distances.clear();
-    corners.clear();
 }

@@ -16,7 +16,7 @@ public:
     void getAngle(exchangeStation exchangeStation, int& X, int& Y, int& Z);
     void showDebugInfo(bool showCurrentResult, bool ifWind, bool showTVec, bool showP4P, bool showPinHole, bool showCompensation, bool showCameraParams);
     void Solver(const char* filePath, int camId, exchangeStation exchangeStation);
-    void eulerAngle();
+    void AngleSolver::eulerAngle(cv::Mat image, std::vector<cv::Point2f> object_corners,Mat image,std::vector<cv::Point2f> object_corners);
 
 //Camera params
     Mat CAMERA_MATRIX;    //IntrinsicMatrix		  fx,fy,cx,cy

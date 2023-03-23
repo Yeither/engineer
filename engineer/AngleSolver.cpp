@@ -188,34 +188,35 @@ void AngleSolver::showDebugInfo(bool showCurrentResult, bool ifWind, bool showTV
     }
 }
 
-void AngleSolver::eulerAngle()
+void AngleSolver::eulerAngle(cv::Mat image, std::vector<cv::Point2f> object_corners)
 {
-    //yaw--alpha        pitch----beta         roll--gamma
-    float theta = 30 * CV_PI / 180; // 假设正方体的面与图像夹角为30度
-    cv::Mat R = (cv::Mat_<float>(3, 3) << cos(theta), -sin(theta), 0,
-            sin(theta), cos(theta), 0,
-            0,           0, 1); // 假设旋转矩阵为Rz(theta)
-    cv::Mat tvec_copy = tVec.clone();
-    std::vector<cv::Point3f> object_points;
-    object_points.push_back(cv::Point3f(X,Y,Z)); // 正方体特征点坐标，这里假设正方体边长为250
-    // ...
+    // 1. 使用cv::findHomography函数计算透视变换矩阵
+    cv::Mat homography = cv::findHomography(object_corners, image_corners);
 
-    // 2. 将旋转矩阵转换为Z-Y-X欧拉角对应的旋转矩阵
+    // 2. 使用cv::decomposeProjectionMatrix函数将透视变换矩阵分解为旋转和平移向量
+    cv::Mat camera_matrix = CAMERA_MATRIX; // 假设已知相机内部矩阵
+    cv::Mat rotation_vector;
+    cv::Mat translation_vector;
+    cv::Mat normal_vector;
+    cv::decomposeProjectionMatrix(homography * camera_matrix, camera_matrix, rotation_vector, translation_vector, normal_vector);
+
+    // 3. 将旋转向量转换为旋转矩阵，并转换为Z-Y-X欧拉角表示法
+    cv::Mat R;
+    cv::Rodrigues(rotation_vector, R);
     cv::Mat R_zxy;
-    cv::Rodrigues(cv::Vec3f(R.at<float>(2, 0), R.at<float>(1, 0), R.at<float>(0, 0)), R_zxy);
+    cv::transpose(R, R_zxy); // 从OpenCV约定转换为Z-Y-X欧拉角表示
 
-    // 3. 通过正方体特征点在图像上的坐标计算出它们在相机坐标系下的坐标
+    // 4. 使用旋转和平移向量将物体坐标转换为相机坐标系下的坐标
     cv::Mat object_points_mat(object_points);
     cv::Mat camera_points_mat;
-    cv::transform(object_points_mat, camera_points_mat, R_zxy.t());//, -R_zxy.t() * tvec
+    cv::transform(object_points_mat, camera_points_mat, R_zxy.t() * camera_matrix.inv(), -R_zxy.t() * translation_vector);
 
-    // 4. 使用相机的内参矩阵将相机坐标系下的坐标转换为图像坐标
-    cv::Mat camera_matrix = CAMERA_MATRIX;
-    cv::Mat distortion_coefficients = cv::Mat::zeros(5, 1, CV_32FC1); // 假设相机没有畸变
+    // 5. 使用相机内部矩阵和畸变系数将相机坐标系下的坐标投影到图像平面上
+    cv::Mat distortion_coefficients = DISTORTION_COEFF; // 镜头畸变
     std::vector<cv::Point2f> image_points;
     cv::projectPoints(camera_points_mat, cv::Vec3f(0, 0, 0), cv::Vec3f(0, 0, 0), camera_matrix, distortion_coefficients, image_points);
 
-    // 5. 根据投影得到的四个角点之间的距离比例计算出正方体的朝向
+    // 6. 根据投影得到的四个角点之间的距离比例计算出正方体的朝向
     float dx = image_points[1].x - image_points[0].x;
     float dy = image_points[2].y - image_points[0].y;
     float dz = dx / sqrt(2.f); // 假设正方体边长为250
@@ -226,17 +227,17 @@ void AngleSolver::eulerAngle()
     yaw=yaw*180/CV_PI;
     roll=roll*180/CV_PI;
     std::cout << "pitch: " << pitch << ", yaw: " << yaw << ", roll: " << roll << std::endl;
-
 }
 
 
-void AngleSolver::Solver(const char* filePath, int camId, exchangeStation exchangeStation)
+void AngleSolver::Solver(const char* filePath, int camId, exchangeStation exchangeStation,Mat image,std::vector<cv::Point2f> object_corners,)
 {
     setCameraParam(filePath, camId);
     setStationSize(240, 240);
     compensateAngle();
     getAngle(exchangeStation, X, Y, Z);
-    eulerAngle();
+    eulerAngle(image,object_corners);
     STATION_POINTS_3D.clear();
+    object_corners.clear();
 }
 

@@ -46,7 +46,7 @@ int main()
         //Mat src= imread("/home/zhouhb/桌面/exchangefuben/4.png");
         src.copyTo(dst);
         a.judgeStation(dst);
-        an.Solver("/home/zhouhb/桌面/exchangefuben/camera_params.xml", 1,a.exchangeStation1);
+        an.Solver("/home/zhouhb/桌面/exchangefuben/camera_params.xml", 1,a.exchangeStation1,dst,a.corners);
         //imshow("111", dst);
         waitKey(1);
 
