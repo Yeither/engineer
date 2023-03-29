@@ -16,13 +16,9 @@ public:
     void getAngle(exchangeStation exchangeStation, int& X, int& Y, int& Z);
     void showDebugInfo(bool showCurrentResult, bool ifWind, bool showTVec, bool showP4P, bool showPinHole, bool showCompensation, bool showCameraParams);
     void Solver(const char* filePath, int camId, exchangeStation exchangeStation,Mat image,std::vector<Point_<float>> object_corners);
-    //void eulerAngle(cv::Mat image, std::vector<cv::Point2f> object_corners);
-    //void get_3D_point(const cv::Mat& inputImage, const std::vector<cv::Point2f>& targetPoints, std::vector<cv::Point3d>& world_points);
-    void pixel2world(const cv::Mat& camera_matrix, const std::vector<cv::Point2f>& pixel_points, std::vector<cv::Point3f>& world_points) ;
-    void computePerpendicular(const vector<Point3f>& points, vector<double>* result);
-    double cos_distance(Point pa,Point pb,Point pc);
+
     int getDistance(Point a, Point b);
-    void my_soolver(vector<Point2f> armorVertices);
+    void mysolver(vector<Point2f> targetContour);
 //Camera params
     Mat CAMERA_MATRIX;    //IntrinsicMatrix		  fx,fy,cx,cy
     Mat DISTORTION_COEFF; //DistortionCoefficients k1,k2,p1,p2
