@@ -199,99 +199,14 @@ int AngleSolver::getDistance(Point a, Point b)
 }
 
 // Function to compute perpendicular vector given three points
-void AngleSolver::computePerpendicular(const vector<Point3f>& points, vector<double>* result)
+
+void AngleSolver::mysolver(vector<Point2f> targetContour)
 {
-    if(points.size()<3)
-    {
-        return;
-    }
-    Mat a = (Mat_<double>(3, 1) << points[0].x-points[1].x, points[0].y-points[1].y, points[0].z-points[1].z);
-    Mat b = (Mat_<double>(3, 1) << points[2].x-points[1].x, points[2].y-points[1].y,points[2].z-points[1].z );
-    Mat c = a.cross(b);
-    for (int i=0;i < c.rows;i++)
-    {
-        result->push_back(c.at<double>(i,0));
-    }
-}
-
-void AngleSolver::pixel2world(const cv::Mat& camera_matrix, const std::vector<cv::Point2f>& pixel_points, std::vector<cv::Point3f>& world_points) {
-    if(pixel_points.size()<4)
-    {
-     return;
-    }
-    // 假设相机坐标系和世界坐标系重合
-    cv::Mat R = cv::Mat::eye(3, 3, CV_64F);
-
-    cv::Mat distortion_coefficients = cv::Mat::zeros(5, 1, CV_64F); // 如果没有畸变，则所有值都为零
-
-    for (const auto& pixel_point : pixel_points) {
-        // 将像素坐标转换为归一化坐标
-        cv::Mat pixel_homogeneous(3, 1, CV_64F);
-        pixel_homogeneous.at<double>(0) = pixel_point.x;
-        pixel_homogeneous.at<double>(1) = pixel_point.y;
-        pixel_homogeneous.at<double>(2) = 1.0;
-
-        cv::Mat normalized = camera_matrix.inv() * pixel_homogeneous; // 归一化坐标
-
-        // 求解射线方程
-        cv::Mat ray_direction = R.inv() * normalized;
-        ray_direction = ray_direction / cv::norm(ray_direction);
-
-        // 计算射线与相机坐标系原点之间的距离
-        double distance1 = -tVec.dot(ray_direction);
-
-        // 求解世界坐标
-        cv::Mat world_homogeneous = tVec + distance1 * ray_direction;
-        cv::Point3f world_point(world_homogeneous.at<double>(0), world_homogeneous.at<double>(1), world_homogeneous.at<double>(2));
-
-        // 存储世界坐标
-        world_points.push_back(world_point);
-    }
-    vector<double> result;
-    computePerpendicular(world_points,&result);
-    double length = pow(result[0]*result[0]+result[1]*result[1]+result[2]*result[2],0.5);
-    // anglez = asin(result[2]/length)*180/CV_PI;
-    // anglex = asin(result[1]/length)*180/CV_PI;
-    // angley = asin(result[0]/length)*180/CV_PI;
-}
-double AngleSolver::cos_distance(Point pa,Point pb,Point pc)
-{
-    double a = getDistance(pb,pc);
-    double b = getDistance(pa,pc);
-    double c = getDistance(pb,pa);
-    double angle = (180*acos((-a*a+b*b+c*c)/2*b*c))/CV_PI;
-    return angle;
-}
-
-void AngleSolver::my_soolver(vector<Point2f> armorVertices)
-{
-    if(armorVertices.size()<4)
-    {
-        return;
-    }
-    roll = 180*atan((armorVertices[1].y-armorVertices[0].y)/(armorVertices[1].x-armorVertices[0].x))/CV_PI;
-    double angle0 = cos_distance(armorVertices[0],armorVertices[1],armorVertices[3]);
-    Point after_roll_translate[4];
-    after_roll_translate[0] = armorVertices[0];
-    double length = getDistance(armorVertices[1],armorVertices[0]);
-    double height = getDistance(armorVertices[3],armorVertices[0]);
-    after_roll_translate[1] = Point (armorVertices[0].x - length * sin(angle0),armorVertices[0].y + length * cos(angle0));
-    after_roll_translate[3] = Point (after_roll_translate[0].x,after_roll_translate[0].y + height);
-    after_roll_translate[2] = Point (armorVertices[3].x - length * sin(angle0),armorVertices[3].y + length * cos(angle0));
-    angle0 = 180*atan((armorVertices[2].x-armorVertices[3].x)/(armorVertices[2].y-armorVertices[3].y))/CV_PI;
-    //
-    pitch = roll+180*atan((armorVertices[1].y-armorVertices[0].y)/(armorVertices[1].x-armorVertices[0].x))/CV_PI;
-    double length2= getDistance(armorVertices[1],armorVertices[0]);
-    double height2;
-    if(getDistance(armorVertices[1],armorVertices[2]) > getDistance(armorVertices[1],armorVertices[0]))
-    {
-         height= getDistance(armorVertices[1],armorVertices[2]);
-    }
-    else
-    {
-         height= getDistance(armorVertices[1],armorVertices[0]);
-    }
-    yaw  = 180*acos(height/length)/CV_PI;
+    roll = 180*(atan((targetContour[3].y-targetContour[0].y)/(targetContour[3].x-targetContour[0].x)))/CV_PI;
+    double  width = getDistance(targetContour[3],targetContour[0]);
+    double hight  = getDistance(targetContour[1],targetContour[0]);
+    pitch = 180*(acos(hight/width))/CV_PI;
+    //cout<<hight<<"  "<<width<<endl;
 }
 
 
@@ -302,12 +217,11 @@ void AngleSolver::Solver(const char* filePath, int camId, exchangeStation exchan
     compensateAngle();
     getAngle(exchangeStation, X, Y, Z);
     vector<Point2f> armorVertices;
-     armorVertices.push_back(exchangeStation.left_up);
-     armorVertices.push_back(exchangeStation.right_up);
-     armorVertices.push_back(exchangeStation.right_down);
-     armorVertices.push_back(exchangeStation.left_down);
-    //pixel2world(CAMERA_MATRIX,targetContour, world_points);
-    my_soolver(armorVertices);
+//     armorVertices.push_back(exchangeStation.left_up);
+//     armorVertices.push_back(exchangeStation.right_up);
+//     armorVertices.push_back(exchangeStation.right_down);
+//     armorVertices.push_back(exchangeStation.left_down);
+    mysolver( targetContour);
     STATION_POINTS_3D.clear();
     object_corners.clear();
     showDebugInfo(1,0,0,0,0,0,0);
